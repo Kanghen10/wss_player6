@@ -22,6 +22,7 @@ overflow:hidden;
 video-stream{
 width:100%;
 height:100%;
+display:block;
 }
 
 #loading{
@@ -48,32 +49,40 @@ font-size:18px;
 
 const loading = document.getElementById("loading");
 
-function startPlayer(){
+function getStreamFromHash(){
 
-const hash = location.hash.replace("#","");
+let hash = location.hash.replace("#","");
 
-if(!hash){
-loading.innerText="NO STREAM";
-return;
-}
-
-// jika user memasukkan WSS penuh
-let streamName = hash;
+if(!hash) return null;
 
 const match = hash.match(/src=([^&]+)/);
 
 if(match){
-streamName = decodeURIComponent(match[1]);
+return decodeURIComponent(match[1]);
+}
+
+return hash;
+
+}
+
+function start(){
+
+const stream = getStreamFromHash();
+
+if(!stream){
+loading.innerText="NO STREAM";
+return;
 }
 
 const video = document.createElement("video-stream");
 
 video.background = true;
+
 video.style.width="100%";
 video.style.height="100%";
 
-// buat URL websocket seperti referensi
-video.src = "wss://paspro-streaming.co.id/view/api/ws?src=" + streamName;
+/* endpoint player server */
+video.src = "https://paspro-streaming.co.id/view/api/ws?src=" + stream;
 
 video.addEventListener("playing", ()=>{
 loading.style.display="none";
@@ -83,7 +92,7 @@ document.body.appendChild(video);
 
 }
 
-window.addEventListener("load", startPlayer);
+window.addEventListener("load",start);
 
 </script>
 
