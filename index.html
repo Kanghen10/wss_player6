@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<title>CCTV WSS Player</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+html, body{
+margin:0;
+padding:0;
+width:100%;
+height:100%;
+background:black;
+overflow:hidden;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+video{
+width:100%;
+height:100%;
+object-fit:contain;
+background:black;
+}
+
+#loading{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:white;
+font-size:18px;
+text-align:center;
+}
+
+.spinner{
+border:4px solid rgba(255,255,255,0.2);
+border-top:4px solid white;
+border-radius:50%;
+width:40px;
+height:40px;
+animation:spin 1s linear infinite;
+margin:auto;
+margin-bottom:10px;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="loading">
+<div class="spinner"></div>
+Loading Stream...
+</div>
+
+<video id="video" autoplay muted playsinline></video>
+
+<script>
+
+let pc;
+let ws;
+let reconnectTimer;
+
+const video = document.getElementById("video");
+const loading = document.getElementById("loading");
+
+function getStreamURL(){
+return location.hash.replace("#","");
+}
+
+function start(){
+
+const url = getStreamURL();
+
+if(!url){
+loading.innerHTML="NO STREAM URL";
+return;
+}
+
+connect(url);
+
+}
+
+function connect(url){
+
+loading.style.display="block";
+
+pc = new RTCPeerConnection({
+iceServers:[]
+});
+
+pc.ontrack = function(event){
+
+video.srcObject = event.streams[0];
+
+loading.style.display="none";
+
+};
+
+pc.onconnectionstatechange = function(){
+
+if(pc.connectionState==="disconnected" ||
+pc.connectionState==="failed" ||
+pc.connectionState==="closed"){
+
+reconnect();
+
+}
+
+};
+
+ws = new WebSocket(url);
+
+ws.onmessage = async function(event){
+
+const data = JSON.parse(event.data);
+
+if(data.type==="offer"){
+
+await pc.setRemoteDescription(data);
+
+const answer = await pc.createAnswer();
+
+await pc.setLocalDescription(answer);
+
+ws.send(JSON.stringify(pc.localDescription));
+
+}
+
+if(data.candidate){
+
+pc.addIceCandidate(data);
+
+}
+
+};
+
+pc.onicecandidate = function(event){
+
+if(event.candidate){
+
+ws.send(JSON.stringify(event.candidate));
+
+}
+
+};
+
+ws.onclose = reconnect;
+ws.onerror = reconnect;
+
+}
+
+function reconnect(){
+
+loading.style.display="block";
+
+if(ws) ws.close();
+if(pc) pc.close();
+
+clearTimeout(reconnectTimer);
+
+reconnectTimer = setTimeout(function(){
+start();
+},3000);
+
+}
+
+window.addEventListener("load", start);
+window.addEventListener("hashchange", start);
+
+</script>
+
+</body>
+</html>
