@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>CCTV WSS Player</title>
+<title>CCTV Player</title>
 
 <style>
 
@@ -19,20 +19,10 @@ background:black;
 overflow:hidden;
 }
 
-video-stream{
+iframe{
+border:none;
 width:100%;
 height:100%;
-display:block;
-}
-
-#loading{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-color:white;
-font-family:Arial;
-font-size:18px;
 }
 
 </style>
@@ -41,58 +31,34 @@ font-size:18px;
 
 <body>
 
-<div id="loading">Loading Stream...</div>
+<iframe id="player"></iframe>
 
-<script type="module" src="https://alexxit.github.io/go2rtc/video-stream.js"></script>
-
-<script type="module">
-
-const loading = document.getElementById("loading");
-
-function getStreamFromHash(){
-
-let hash = location.hash.replace("#","");
-
-if(!hash) return null;
-
-const match = hash.match(/src=([^&]+)/);
-
-if(match){
-return decodeURIComponent(match[1]);
-}
-
-return hash;
-
-}
+<script>
 
 function start(){
 
-const stream = getStreamFromHash();
+let hash = location.hash.replace("#","");
 
-if(!stream){
-loading.innerText="NO STREAM";
-return;
+if(!hash) return;
+
+/* ambil src dari url */
+let match = hash.match(/src=([^&]+)/);
+
+let stream = "";
+
+if(match){
+stream = match[1];
+}else{
+stream = hash;
 }
 
-const video = document.createElement("video-stream");
-
-video.background = true;
-
-video.style.width="100%";
-video.style.height="100%";
-
-/* endpoint player server */
-video.src = "https://paspro-streaming.co.id/view/api/ws?src=" + stream;
-
-video.addEventListener("playing", ()=>{
-loading.style.display="none";
-});
-
-document.body.appendChild(video);
+/* buka player asli */
+document.getElementById("player").src =
+"https://paspro-streaming.co.id/view/stream.html?src=" + stream;
 
 }
 
-window.addEventListener("load",start);
+window.onload = start;
 
 </script>
 
