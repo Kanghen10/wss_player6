@@ -4,9 +4,10 @@
 <head>
 
 <meta charset="utf-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>WSS CCTV Player</title>
+<title>CCTV WSS Player</title>
 
 <style>
 
@@ -31,6 +32,7 @@ left:50%;
 transform:translate(-50%,-50%);
 color:white;
 font-family:Arial;
+font-size:18px;
 }
 
 </style>
@@ -47,25 +49,25 @@ font-family:Arial;
 
 const loading = document.getElementById("loading");
 
-function startPlayer(){
+function start(){
 
-const streamURL = location.hash.replace("#","");
+const hash = location.hash.replace("#","");
 
-if(!streamURL){
+if(!hash){
 loading.innerText = "NO STREAM URL";
 return;
 }
 
 const video = document.createElement("video-stream");
 
+video.background = true;
+
 video.style.width = "100%";
 video.style.height = "100%";
 
-video.background = true;
+video.src = hash;
 
-video.src = streamURL;
-
-video.addEventListener("play", () => {
+video.addEventListener("loadeddata", ()=>{
 loading.style.display="none";
 });
 
@@ -73,7 +75,7 @@ document.body.appendChild(video);
 
 }
 
-window.addEventListener("load", startPlayer);
+window.addEventListener("load", start);
 
 </script>
 
