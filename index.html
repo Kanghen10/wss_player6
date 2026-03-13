@@ -4,7 +4,6 @@
 <head>
 
 <meta charset="utf-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>CCTV WSS Player</title>
@@ -49,25 +48,34 @@ font-size:18px;
 
 const loading = document.getElementById("loading");
 
-function start(){
+function startPlayer(){
 
 const hash = location.hash.replace("#","");
 
 if(!hash){
-loading.innerText = "NO STREAM URL";
+loading.innerText="NO STREAM";
 return;
+}
+
+// jika user memasukkan WSS penuh
+let streamName = hash;
+
+const match = hash.match(/src=([^&]+)/);
+
+if(match){
+streamName = decodeURIComponent(match[1]);
 }
 
 const video = document.createElement("video-stream");
 
 video.background = true;
+video.style.width="100%";
+video.style.height="100%";
 
-video.style.width = "100%";
-video.style.height = "100%";
+// buat URL websocket seperti referensi
+video.src = "wss://paspro-streaming.co.id/view/api/ws?src=" + streamName;
 
-video.src = hash;
-
-video.addEventListener("loadeddata", ()=>{
+video.addEventListener("playing", ()=>{
 loading.style.display="none";
 });
 
@@ -75,7 +83,7 @@ document.body.appendChild(video);
 
 }
 
-window.addEventListener("load", start);
+window.addEventListener("load", startPlayer);
 
 </script>
 
